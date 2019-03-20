@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         String parentFile = "";
         if(packageManager!=null){
             try {
-                ApplicationInfo applicationInfo = packageManager.getApplicationInfo("com.adair.test",0);
+                ApplicationInfo applicationInfo = packageManager.getApplicationInfo("com.example.test",0);
                 parentFile = applicationInfo.sourceDir;
                 textView.append("\nparentFile = "+parentFile);
             } catch (PackageManager.NameNotFoundException e) {
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        final File file = new File(parentFile+File.separator+"base.apk");
+        final File file = new File(parentFile);
         if(!file.exists()){
             textView.append("\nbase.apk文件不存在");
             textView.append("\n结束");
@@ -134,46 +134,47 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }else{
-
-                } runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.append("\n合并失败");
-                    }
-                });
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textView.append("\n合并失败");
+                        }
+                    });
+                }
             }
         }).start();
     }
 
     private void diff() {
         textView.setText("");
-        textView.setText("开始合并");
-        PackageManager packageManager = getPackageManager();
-        String parentFile = "";
-        if(packageManager!=null){
-            try {
-                ApplicationInfo applicationInfo = packageManager.getApplicationInfo("com.adair.test",0);
-                parentFile = applicationInfo.sourceDir;
-                textView.append("\nparentFile = "+parentFile);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-                textView.append("\n获取ApplicationInfo失败");
-                textView.append("\n结束");
-                return;
-            }
-        }
-
-        final File file = new File(parentFile+File.separator+"base.apk");
-        if(!file.exists()){
-            textView.append("\nbase.apk文件不存在");
-            textView.append("\n结束");
-            return;
-        }
-        textView.append("\nbase.apk文件存在,可以复制");
-        textView.append("\n开始复制");
+        textView.setText("开始差分");
         new Thread(new Runnable() {
             @Override
             public void run() {
+                String oldFilePath ="";
+                PackageManager packageManager = getPackageManager();
+                if(packageManager!=null){
+                    try {
+                        ApplicationInfo applicationInfo = packageManager.getApplicationInfo("com.example.test",0);
+                        oldFilePath = applicationInfo.sourceDir;
+                        showText("\noldFilePath = "+ oldFilePath);
+
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                        showText("\n获取ApplicationInfo失败");
+                        showText("\n结束");
+                    }
+                }
+
+
+                final File file = new File( oldFilePath);
+                if(!file.exists()){
+                    showText("\nbase.apk文件不存在");
+                    showText("\n结束");
+                    return;
+                }
+                showText("\nbase.apk文件存在,可以复制");
+                showText("\n开始复制");
                 String dstParentPath = getExternalFilesDir("test").getAbsolutePath();
                 File parentFile = new File(dstParentPath);
                 if(!parentFile.exists()){
@@ -205,8 +206,6 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -215,8 +214,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                String newApkFilePath = "newFile.Apk";
-                String newDstApkFile =  dstParentPath+File.separator+"newFile.Apk";
+                String newApkFilePath = "newFile.apk";
+                String newDstApkFile =  dstParentPath+File.separator+"newFile.apk";
                 FileUtils.copyFileFromAssets2Sd(MainActivity.this,newApkFilePath,newDstApkFile);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -235,14 +234,26 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }else{
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textView.append("\n生成差分包失败");
+                        }
+                    });
+                }
 
-                } runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.append("\n生成差分包失败");
-                    }
-                });
             }
         }).start();
     }
+
+
+    public void showText(final String msg){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                textView.append("\n"+msg);
+            }
+        });
+    }
+
 }
